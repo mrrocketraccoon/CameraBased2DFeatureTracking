@@ -63,7 +63,10 @@ int main(int argc, const char *argv[])
         DataFrame frame;
         frame.cameraImg = imgGray;
         dataBuffer.push_back(frame);
-
+        if(dataBuffer.size() > dataBufferSize)
+        {
+          dataBuffer.erase(dataBuffer.begin());
+        }
         //// EOF STUDENT ASSIGNMENT
         cout << "#1 : LOAD IMAGE INTO BUFFER done" << endl;
 
@@ -79,7 +82,11 @@ int main(int argc, const char *argv[])
 
         if (detectorType.compare("SHITOMASI") == 0)
         {
-            detKeypointsShiTomasi(keypoints, imgGray, false);
+            detKeypointsShiTomasi(keypoints, imgGray, true);
+        }
+        if (detectorType.compare("HARRIS") == 0)
+        {
+            detKeypointsHarris(keypoints, imgGray, false);
         }
         else
         {
@@ -105,11 +112,8 @@ int main(int argc, const char *argv[])
         if (bLimitKpts)
         {
             int maxKeypoints = 50;
-
-            if (detectorType.compare("SHITOMASI") == 0)
-            { // there is no response info, so keep the first 50 as they are sorted in descending quality order
-                keypoints.erase(keypoints.begin() + maxKeypoints, keypoints.end());
-            }
+            // there is no response info, so keep the first 50 as they are sorted in descending quality order
+            keypoints.erase(keypoints.begin() + maxKeypoints, keypoints.end());
             cv::KeyPointsFilter::retainBest(keypoints, maxKeypoints);
             cout << " NOTE: Keypoints have been limited!" << endl;
         }
@@ -171,7 +175,8 @@ int main(int argc, const char *argv[])
                                 vector<char>(), cv::DrawMatchesFlags::DRAW_RICH_KEYPOINTS);
 
                 string windowName = "Matching keypoints between two camera images";
-                cv::namedWindow(windowName, 7);
+                cv::resize(matchImg, matchImg, cv::Size(matchImg.cols/2, matchImg.rows/2));
+                cv::namedWindow(windowName, cv::WINDOW_AUTOSIZE);
                 cv::imshow(windowName, matchImg);
                 cout << "Press key to continue to next image" << endl;
                 cv::waitKey(0); // wait for key to be pressed
