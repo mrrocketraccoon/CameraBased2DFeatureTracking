@@ -174,18 +174,39 @@ void detKeypointsHarris(vector<cv::KeyPoint> &keypoints, cv::Mat &img, bool bVis
 
 void detKeypointsModern(std::vector<cv::KeyPoint> &keypoints, cv::Mat &img, std::string detectorType, bool bVis)
 {
+    double t = (double)cv::getTickCount();
     if(detectorType.compare("FAST")==0)
     {
         int threshold = 30;	// difference between intensity of the central pixel and pixels of a circle around this pixel
         bool bNMS = true;	// perform non-maxima suppression on keypoints
+
         cv::FastFeatureDetector::DetectorType type = cv::FastFeatureDetector::TYPE_9_16;	// TYPE_9_16, TYPE_7_12, TYPE_5_8
         cv::Ptr<cv::FeatureDetector> detector = cv::FastFeatureDetector::create(threshold, bNMS, type);
 
-        double t = (double)cv::getTickCount();
         detector->detect(img, keypoints);
-        t = ((double)cv::getTickCount() - t) / cv::getTickFrequency();
-        cout << "FAST with n= " << keypoints.size() << " keypoints in " << 1000 * t / 1.0 << " ms" << endl;
     }
+    else if(detectorType.compare("BRISK")==0)
+    {
+        cv::Ptr<cv::BRISK> detectorBrisk = cv::BRISK::create();
+        detectorBrisk->detect(img, keypoints);   
+    }
+    else if(detectorType.compare("ORB")==0)
+    {
+        cv::Ptr<cv::ORB> detectorOrb = cv::ORB::create();
+        detectorOrb->detect(img, keypoints);   
+    }
+    else if(detectorType.compare("AKAZE")==0)
+    {
+        cv::Ptr<cv::AKAZE> detectorAkaze = cv::AKAZE::create();
+        detectorAkaze->detect(img, keypoints);   
+    }
+    else if(detectorType.compare("SIFT")==0)
+    {
+        cv::Ptr<cv::SIFT> detectorSift = cv::SIFT::create();
+        detectorSift->detect(img, keypoints);   
+    }
+    t = ((double)cv::getTickCount() - t) / cv::getTickFrequency();
+    cout << detectorType << " with n= " << keypoints.size() << " keypoints in " << 1000 * t / 1.0 << " ms" << endl;
 
     // visualize results
     if (bVis)
