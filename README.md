@@ -41,3 +41,78 @@ Then, add *C:\vcpkg\installed\x64-windows\bin* and *C:\vcpkg\installed\x64-windo
 2. Make a build directory in the top level directory: `mkdir build && cd build`
 3. Compile: `cmake .. && make`
 4. Run it: `./2D_feature_tracking`.
+
+## Results
+
+### Number of detected keypoints
+
+| Frame | HARRIS | SHITOMASI | FAST | BRISK | ORB | SIFT | AKAZE |
+|-------|--------|-----------|------|-------|-----|------|-------|
+| 1     | 14     | 118       | 152  | 282   | 102 | 132  | 157   |
+| 2     | 18     | 123       | 150  | 282   | 106 | 124  | 161   |
+| 3     | 21     | 120       | 155  | 277   | 113 | 137  | 155   |
+| 4     | 26     | 120       | 149  | 297   | 109 | 134  | 163   |
+| 5     | 43     | 113       | 149  | 279   | 125 | 140  | 164   |
+| 6     | 18     | 114       | 156  | 289   | 130 | 137  | 173   |
+| 7     | 31     | 123       | 150  | 272   | 129 | 148  | 175   |
+| 8     | 26     | 111       | 138  | 266   | 127 | 159  | 177   |
+| 9     | 34     | 112       | 143  | 254   | 128 | 137  | 179   |
+<p align = "center">
+Table 1.- Number of keypoints per frame using different detectors.
+</p>
+
+### Average number of matched keypoints
+
+|   Descriptor\Detector    | HARRIS | SHITOMASI | FAST   | BRISK  | ORB    | SIFT   | AKAZE  |
+|--------------------------|--------|-----------|--------|--------|--------|--------|--------|
+|          BRIEF           | 23.78  | 118.56    | 149.78 | 278.67 | 105.56 | 138.67 |   -    |
+|          ORB             | 23.78  | 118.56    | 149.78 | 278.67 | 114.78 | N/A    |   -    |
+|          FREAK           | 23.78  | 118.56    | 149.78 | 258.44 | 61     | 137.67 |   -    |
+|          AKAZE           |   -    |   -       |   -    |   -    |   -    |   -    | 165.67 |
+|          SIFT            | 23.78  | 118.56    | 149.78 | 278.67 | 114.78 | 138.78 |   -    |
+<p align = "center">
+Table 2.- Average number of matched keypoints per detector-descriptor combination.
+</p>
+
+### Average time for detection and descriptor extraction
+
+| Descriptor\Detector | HARRIS | SHITOMASI | FAST | BRISK | ORB | SIFT | AKAZE |
+|---------------------|--------|-----------|------|-------|-----|------|-------|
+| BRIEF               | 19     | 452       | 447  | 943   | 407 | 562  | -     |
+| ORB                 | 7      | 58        | 49   | 551   | 17  | -    | -     |
+| FREAK               | 17     | 95        | 99   | 597   | 61  | 245  | -     |
+| AKAZE               | -      | -         | -    | -     | -   | -    | 235   |
+| SIFT                | 12     | 447       | 83   | 615   | 93  | 254  | -     |
+
+<p align = "center">
+Table 3.- Average time for detection and descriptor extraction per detector-descriptor combination.
+</p>
+
+### Recomendations
+Since we would like to maximize the probabilities of detecting the car in front of us we would chose the average number of matched keypoints as the most important decision criterion when selecting a descriptor-detector combination. Since the computation time has to happen quickly enough to even be able to brake when presented to a critical situation. The second most important decision criterion would be the average time for detection and description extraction. Therefore we would use a compromise between number of matched keypoints and average computation time to help us make our decision and calculate the matching/time score based on the following ratio:
+
+$$score = {{average\_number\_of\_matched\_keypoints}\over{average\_time}}$$
+
+Resulting in:
+
+| Descriptor\Detector | HARRIS | SHITOMASI | FAST | BRISK | ORB  | SIFT | AKAZE |
+|---------------------|--------|-----------|------|-------|------|------|-------|
+| BRIEF               | 1.25   | 0.26      | 0.34 | 0.30  | 0.26 | 0.25 | -     |
+| ORB                 | 3.40   | 2.04      | 3.06 | 0.51  | 6.75 | -    | -     |
+| FREAK               | 1.40   | 1.25      | 1.51 | 0.43  | 1.00 | 0.56 | -     |
+| AKAZE               | -      | -         | -    | -     | -    | -    | 0.70  |
+| SIFT                | 1.98   | 0.27      | 1.80 | 0.45  | 1.23 | 0.55 | -     |
+<p align = "center">
+Table 4.- "Efficiency score" per detector-descriptor combination.
+</p>
+
+
+Table 4 presents a summarized version of an "efficiency score". This information is however not enough to make a solid decision. We must combine information from the previous steps as well.
+We can discard the values provided by the HARRIS corner detection because 14-40 detections might not suffice to produce a reliable matching.
+From Table 1 we see that BRISK is consistently able to compute the highest number of keypoints and therefore also gets the higher number of matched keypoints regardless of the descriptor used. We see that BRISK would be the decision to go when requiring a higher confidence for our detection. However the detector-descriptor combination we use makes a considerable difference when it comes to the computation time. More than 500 ms for the BRISK-based detection would probably mean a collision if we drive at e.g. 60 km/h = 16.67 m/s. We would have traveled about 8 m after this period.
+
+
+Therefore the best combinations considering this detections-time relation would be:
+1) ORB-BRIEF
+2) FAST-ORB
+3) SHITOMASI-ORB

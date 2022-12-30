@@ -42,10 +42,10 @@ int main(int argc, const char *argv[])
 
     /* MAIN LOOP OVER ALL IMAGES */
     std::ofstream spreadsheet;
-    spreadsheet.open("keypointDescriptorMatching.csv");
+    spreadsheet.open("keypointDescriptorMatching.csv", fstream::app);
     spreadsheet << "detectorType, descriptorType, n_detected_keypoints, n_matched_keypoints, time\n";
-    std::vector<string> detectors {"SHITOMASI","FAST", "BRISK", "ORB", "AKAZE", "SIFT"};
-    std::vector<string> descriptors {"BRIEF", "ORB", "FREAK", "AKAZE", "SIFT"};
+    std::vector<string> detectors {"HARRIS"};
+    std::vector<string> descriptors {"BRIEF", "ORB", "FREAK", "SIFT"};
     for (auto& detectorType : detectors)
     {
         for (auto& descriptorType : descriptors)
@@ -73,7 +73,7 @@ int main(int argc, const char *argv[])
                 dataBuffer.push_back(frame);
                 if(dataBuffer.size() > dataBufferSize)
                 {
-                dataBuffer.erase(dataBuffer.begin());
+                    dataBuffer.erase(dataBuffer.begin());
                 }
                 //// EOF STUDENT ASSIGNMENT
                 cout << "#1 : LOAD IMAGE INTO BUFFER done" << endl;
@@ -198,8 +198,8 @@ int main(int argc, const char *argv[])
                     }
                     bVis = false;
                 }
-                dataBuffer.clear();
             } // eof loop over all images
+            dataBuffer.clear();
         }
     }
     spreadsheet.close();
