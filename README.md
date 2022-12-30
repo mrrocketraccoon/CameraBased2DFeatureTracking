@@ -91,7 +91,7 @@ Table 3.- Average time for detection and descriptor extraction per detector-desc
 ### Recomendations
 Since we would like to maximize the probabilities of detecting the car in front of us we would chose the average number of matched keypoints as the most important decision criterion when selecting a descriptor-detector combination. Since the computation time has to happen quickly enough to even be able to brake when presented to a critical situation. The second most important decision criterion would be the average time for detection and description extraction. Therefore we would use a compromise between number of matched keypoints and average computation time to help us make our decision and calculate the matching/time score based on the following ratio:
 
-$$score = {{average\:number\:of\:matched\:keypoints}\over{average\:time}}$$
+$$score = {{average\ number\ of\ matched\ keypoints}\over{average\ time}}$$
 
 Resulting in:
 
