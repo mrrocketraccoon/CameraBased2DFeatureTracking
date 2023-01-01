@@ -42,8 +42,109 @@ Then, add *C:\vcpkg\installed\x64-windows\bin* and *C:\vcpkg\installed\x64-windo
 3. Compile: `cmake .. && make`
 4. Run it: `./2D_feature_tracking`.
 
-## Results
+## Technical Report
 
+### Task 1
+The circular buffer was implemented using a conditional and the erase method of vector.
+
+```c++
+...
+if(dataBuffer.size() > dataBufferSize)
+{
+  dataBuffer.erase(dataBuffer.begin());
+}
+...
+```
+
+### Task 2
+The different detectors where added to the detKeypointsModern function using their default parameters. The detectors are selected by string comparison. E.g.
+```c++
+...
+else if(detectorType.compare("BRISK")==0)
+{
+    detector = cv::BRISK::create();
+}
+else if(detectorType.compare("ORB")==0)
+{
+    detector = cv::ORB::create();
+}
+...
+```
+
+### Task 3
+The keypoints corresponding to the preceding vehicle were filtered out using a cv::Rect object type and its "contains" method.
+
+```c++
+...
+cv::Rect vehicleRect(535, 180, 180, 150);
+if (bFocusOnVehicle)
+{
+    for(auto it = keypoints.begin(); it!= keypoints.end(); ++it)
+    {
+        if(!vehicleRect.contains(it->pt))
+        {
+            keypoints.erase(it--);
+        }
+    }
+}
+...
+```
+
+### Task 4
+The different descriptors where added to the descKeypoints function in the same fashion as in Task 2. E.g.
+
+```c++
+...
+else if (descriptorType.compare("BRIEF") == 0)
+{
+    extractor = cv::BRISK::create();
+}
+else if (descriptorType.compare("ORB") == 0)
+{
+    extractor = cv::ORB::create();
+}
+...
+```
+
+### Task 5
+FLANN-based matching was added to the matchDescriptors function. The selection of the matching method happens again by string comparison. An important issue is the conversion to a 32-bit floating point due to a bug in OpenCV. The matcher is then created using its corresponding OpenCV implementation.
+
+```c++
+...
+else if (matcherType.compare("MAT_FLANN") == 0)
+{
+  if (descSource.type() != CV_32F)
+  {
+      descSource.convertTo(descSource, CV_32F);
+      descRef.convertTo(descRef, CV_32F);
+  }
+  matcher = cv::DescriptorMatcher::create(cv::DescriptorMatcher::FLANNBASED);
+...
+}
+```
+
+### Task 6
+Filtering by descriptor distance ratio was implemented in the matchDescriptors function. The selection happens again by string comparison. kNN matching is performed by using the knnMatch method with k = 2. The threshold to filter out ambiguous matches is set to 0.8.
+
+```c++
+else if (selectorType.compare("SEL_KNN") == 0)
+{
+    vector<vector<cv::DMatch>> knnMatches;
+    matcher->knnMatch(descSource, descRef, knnMatches, 2);
+
+    const float ratioThresh = 0.8f;
+    for (size_t i = 0; i < knnMatches.size(); i++)
+    {
+        if (knnMatches[i][0].distance < ratioThresh * knnMatches[i][1].distance)
+        {
+            matches.push_back(knnMatches[i][0]);
+        }
+    }
+}
+```
+
+## Results
+### Task 7
 ### Number of detected keypoints
 
 | Frame | HARRIS | SHITOMASI | FAST | BRISK | ORB | SIFT | AKAZE |
@@ -61,6 +162,7 @@ Then, add *C:\vcpkg\installed\x64-windows\bin* and *C:\vcpkg\installed\x64-windo
 Table 1.- Number of keypoints per frame using different detectors.
 </p>
 
+### Task 8
 ### Average number of matched keypoints
 
 |   Descriptor\Detector    | HARRIS | SHITOMASI | FAST   | BRISK  | ORB    | SIFT   | AKAZE  |
@@ -74,6 +176,7 @@ Table 1.- Number of keypoints per frame using different detectors.
 Table 2.- Average number of matched keypoints per detector-descriptor combination.
 </p>
 
+### Task 9
 ### Average time for detection and descriptor extraction
 
 | Descriptor\Detector | HARRIS | SHITOMASI | FAST | BRISK | ORB | SIFT | AKAZE |
